@@ -1,16 +1,8 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { products } from '@/data/products';
 import { notFound } from 'next/navigation';
-import { use } from 'react';
-
-interface ProductDetailPageProps {
-  params: Promise<{
-    slug: string;
-  }>;
-}
+import { ProductInquiryButton } from '@/components/product-inquiry-button';
 
 export async function generateStaticParams() {
   return products.map((product) => ({
@@ -18,31 +10,21 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function ProductDetailPage({ params }: ProductDetailPageProps) {
-  const { slug } = use(params);
+interface ProductDetailPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
+  const { slug } = await params;
   const product = products.find((p) => p.slug === slug);
 
   if (!product) {
     notFound();
   }
 
-  const relatedProducts = products.filter(
-    (p) => p.category === product.category && p.id !== product.id
-  ).slice(0, 3);
-
-  const handleInquiryClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const to = 'city@kiddiwell.com';
-    const subject = `Order Inquiry: ${product.name}`;
-    const body = `I would like to order ${product.name}. Please provide more information.`;
-    
-    const gmailUrl = 'https://mail.google.com/mail/?view=cm&fs=1' +
-      '&to=' + encodeURIComponent(to) +
-      '&su=' + encodeURIComponent(subject) +
-      '&body=' + encodeURIComponent(body);
-    
-    window.open(gmailUrl, '_blank');
-  };
+  const relatedProducts = products
+    .filter((p) => p.category === product.category && p.id !== product.id)
+    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,13 +85,7 @@ export default function ProductDetailPage({ params }: ProductDetailPageProps) {
                 Premium quality, organic ingredients, no additives
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href="#"
-                  onClick={handleInquiryClick}
-                  className="flex-1 bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold text-center"
-                >
-                  Place Order Inquiry
-                </a>
+                <ProductInquiryButton productName={product.name} />
                 <Link
                   href="/products"
                   className="flex-1 border-2 border-primary text-primary px-6 py-3 rounded-lg hover:bg-primary/5 transition-colors font-semibold text-center"
